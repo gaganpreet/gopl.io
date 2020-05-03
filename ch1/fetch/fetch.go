@@ -24,6 +24,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "read: :%v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("%s", b)
+		fmt.Printf("%s\nStatus code: %d\n", b, resp.StatusCode)
 	}
 }
