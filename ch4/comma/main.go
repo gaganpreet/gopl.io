@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
 func comma(s string) string {
@@ -18,6 +19,17 @@ func commaBuffer(s string) string {
 	// Exercise: non recursive comma using buffer
 	var buf bytes.Buffer
 
+	if s[0] == '+' || s[0] == '-' {
+		buf.WriteByte(s[0])
+		s = s[1:]
+	}
+
+	suffix:= ""
+
+	if decimalIndex := strings.Index(s, "."); decimalIndex != -1 {
+		s, suffix = s[:decimalIndex], s[decimalIndex:]
+	}
+
 	offset := len(s) % 3
 	if offset == 0 {
 		offset = 3
@@ -31,10 +43,14 @@ func commaBuffer(s string) string {
 		offset = 3
 	}
 	buf.WriteString(s)
+	buf.WriteString(suffix)
 	return buf.String()
 }
 
 func main() {
 	fmt.Println(commaBuffer("12345"))
 	fmt.Println(commaBuffer("134075971343401"))
+	fmt.Println(commaBuffer("+12345"))
+	fmt.Println(commaBuffer("-12345"))
+	fmt.Println(commaBuffer("12345.314341"))
 }
