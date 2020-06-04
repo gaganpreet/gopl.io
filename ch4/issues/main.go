@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"gopl.io/ch3/ch4/github"
+	"gopl.io/ch4/github"
 )
 
 func timeSince(date time.Time) string {
