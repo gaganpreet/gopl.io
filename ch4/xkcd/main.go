@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const cacheDir string = "./xkcdcache"
@@ -54,50 +55,53 @@ func fetchComicFromURL(url string) (*ComicInfo, error) {
 	return &result, nil
 }
 
-func fetchAndCacheComic(id int, ch chan<- string) {
+func fetchAndCacheComic(id int, query string) {
 	cacheLocation := fmt.Sprintf("%s/%d.json", cacheDir, id)
 	file, err := os.Open(cacheLocation)
+	var comic *ComicInfo = new(ComicInfo)
 	if err != nil {
-		comic, err := getComic(id)
+		comic, err = getComic(id)
 		if err != nil {
-			ch <- fmt.Sprintf("error while fetching %d: %s", id, err)
+			fmt.Fprintf(os.Stderr, "error while fetching %d: %s\n", id, err)
 			return
 		}
 		writeFile, err := os.Create(cacheLocation)
 		if err != nil {
-			ch <- fmt.Sprintf("error while writing to cache <%s> for %d: %s", cacheLocation, id, err)
+			fmt.Fprintf(os.Stderr, "error while writing to cache <%s> for %d: %s\n", cacheLocation, id, err)
 			return
 		}
 		json.NewEncoder(writeFile).Encode(comic)
 		writeFile.Close()
-		ch <- fmt.Sprintf("Cached comic %d in %s", id, cacheLocation)
 		return
+	} else {
+		json.NewDecoder(file).Decode(comic)
 	}
 	file.Close()
-	ch <- fmt.Sprintf("Found existing cache for %d in %s", id, cacheLocation)
+	if comic != nil && (strings.Contains(strings.ToLower(comic.Transcript), query) ||
+		strings.Contains(strings.ToLower(comic.Alt), query)) {
+		fmt.Printf("[#%d]\thttps://xkcd.com/%d\t%s\n", comic.Num, comic.Num, comic.Alt)
+	}
 }
 
-func cacheComics() error {
+func cacheAndSearchComics(query string) error {
 	comic, err := getLatestComic()
 	if err != nil {
 		return err
 	}
 	latest := comic.Num
-	ch := make(chan string, 10)
 	for i := 1; i <= latest; i++ {
-		go fetchAndCacheComic(i, ch)
-	}
-	for i := 1; i <= latest; i++ {
-		fmt.Println(<-ch)
+		fetchAndCacheComic(i, query)
 	}
 	return nil
 }
 
 func main() {
-	if os.Args[1] == "init" {
-		err := cacheComics()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed with %s", err)
-		}
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, "Need a search argument")
+	}
+	query := os.Args[1]
+	err := cacheAndSearchComics(query)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed with %s", err)
 	}
 }
