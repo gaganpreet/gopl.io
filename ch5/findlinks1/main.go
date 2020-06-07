@@ -7,10 +7,12 @@ import (
 	"golang.org/x/net/html"
 )
 
+var srcKey = map[string]string {"a": "href", "img": "src", "link": "href", "script": "src"}
+
 func visit(links []string, n *html.Node) []string {
-	if n.Type == html.ElementNode && n.Data == "a" {
+	if n.Type == html.ElementNode && srcKey[n.Data] != "" {
 		for _, a := range n.Attr {
-			if a.Key == "href" {
+			if a.Key == srcKey[n.Data] {
 				links = append(links, a.Val)
 
 			}
@@ -28,9 +30,9 @@ func visitRecursively(links []string, n *html.Node) []string {
 	if n == nil {
 		return links
 	}
-	if n.Type == html.ElementNode && n.Data == "a" {
+	if n.Type == html.ElementNode && srcKey[n.Data] != "" {
 		for _, a := range n.Attr {
-			if a.Key == "href" {
+			if a.Key == srcKey[n.Data] {
 				links = append(links, a.Val)
 			}
 		}
