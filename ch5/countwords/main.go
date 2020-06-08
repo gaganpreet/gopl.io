@@ -1,3 +1,4 @@
+// Implement countWordsAndImages 5.5
 package main
 
 import (
