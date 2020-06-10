@@ -21,6 +21,10 @@ func startElement(n *html.Node) {
 		attrString := strings.Join(attrList, " ")
 
 		if n.FirstChild != nil {
+			attrList := make([]string, len(n.Attr))
+			for _, attr := range n.Attr {
+				attrList = append(attrList, fmt.Sprintf("%s=\"%s\"", attr.Key, attr.Val))
+			}
 			fmt.Printf("%*s<%s%s>\n", depth*2, "", n.Data, attrString)
 			depth++
 		} else {
