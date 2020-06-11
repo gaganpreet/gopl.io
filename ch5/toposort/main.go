@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 type VisitedType int8
@@ -13,8 +14,9 @@ const (
 )
 
 var prereqs = map[string][]string{
-	"algorithms": {"data structures"},
-	"calculus":   {"linear algebra"},
+	"algorithms":     {"data structures"},
+	"calculus":       {"linear algebra"},
+	// "linear algebra": {"calculus"}, // Exercise 5.11 to detect cycles
 	"compilers": {
 		"data structures",
 		"formal languages",
@@ -30,24 +32,35 @@ var prereqs = map[string][]string{
 }
 
 func main() {
-	for i, course := range topoSort(prereqs) {
+	result, err := topoSort(prereqs)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+
+	for i, course := range result {
 		fmt.Printf("%d:\t%s\n", i+1, course)
 	}
 }
 
-func topoSort(m map[string][]string) []string {
+func topoSort(m map[string][]string) ([]string, error) {
 	var order []string
+	var err error
 	state := make(map[string]VisitedType)
 	var visitAll func()
 	var visit func(start string)
 	visit = func(start string) {
-		state[start] = TemporaryMark
-		for _, item := range m[start] {
-			if state[item] == Unvisited {
+		if state[start] == TemporaryMark{
+			err = fmt.Errorf("Found cycle for %s", start)
+		}
+		if state[start] == Unvisited {
+			state[start] = TemporaryMark
+			for _, item := range m[start] {
 				visit(item)
 			}
+			order = append(order, start)
+			state[start] = PermanentMark
 		}
-		order = append(order, start)
 	}
 	visitAll = func() {
 		for item := range prereqs {
@@ -57,5 +70,5 @@ func topoSort(m map[string][]string) []string {
 		}
 	}
 	visitAll()
-	return order
+	return order, err
 }
