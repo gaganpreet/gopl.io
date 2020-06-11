@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -31,6 +32,22 @@ func crawl(url string)[] string {
 	return list
 }
 
+func crawlFs(dir string)[] string {
+	fmt.Println(dir)
+	dirEntries, err := ioutil.ReadDir(dir) 
+	if err != nil {
+		return nil
+	}
+
+	var childDirs []string
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() {
+			childDirs = append(childDirs, fmt.Sprintf("%s/%s", dir, dirEntry.Name()))
+		}
+	}
+	return childDirs
+}
+
 func main() {
-	breadthFirst(crawl, os.Args[1:])
+	breadthFirst(crawlFs, os.Args[1:])
 }
