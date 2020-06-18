@@ -31,4 +31,6 @@ func main() {
 	fmt.Println(&x)
 	x.Add(10)
 	fmt.Println(&x)
+
+	fmt.Println(t.Elems())
 }
