@@ -1,8 +1,14 @@
 package main
 
+import "fmt"
+
 type tree struct {
 	value int
 	left, right *tree
+}
+
+func (t tree) String() string {
+	return fmt.Sprintf("<%d>", t.value)
 }
 
 // sort sorts values in place.
@@ -38,4 +44,9 @@ func add(t *tree, value int) * tree {
 		t.right = add(t.right, value)
 	}
 	return t
+}
+
+func main() {
+	t := tree{value: 5}
+	fmt.Println(t)
 }
