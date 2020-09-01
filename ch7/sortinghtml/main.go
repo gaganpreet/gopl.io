@@ -1,3 +1,4 @@
+// Exercies 7.9, print tracks in html
 package main
 
 import (
@@ -50,17 +51,17 @@ func length(s string) time.Duration {
 var trackList = template.Must(template.New("tracklist").Parse(`
 <table>
 <tr style='text-align: left'>
-<th>Title</th>
-<th>Artist</th>
-<th>Year</th>
-<th>Album</th>
-<th>Length</th>
+<th><a href="?sort=title">Title</th>
+<th><a href="?sort=artist">Artist</th>
+<th><a href="?sort=year">Year</th>
+<th><a href="?sort=album">Album</th>
+<th><a href="?sort=length">Length</th>
 {{ range $ }}
 <tr>
 <td>{{ .Title }}</td>
 <td>{{ .Artist }}</td>
-<td>{{ .Album }}</td>
 <td>{{ .Year }}</td>
+<td>{{ .Album }}</td>
 <td>{{ .Length }}</td>
 {{ end }}
 </table>
@@ -71,14 +72,21 @@ func tracksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "<html>")
+	sortKey := r.FormValue("sort")
 	sort.Sort(customSort{tracks, func(x, y *Track) bool {
-		if x.Title != y.Title {
+		if sortKey == "title" {
 			return x.Title < y.Title
 		}
-		if x.Year != y.Year {
+		if sortKey == "artist" {
+			return x.Artist < y.Artist
+		}
+		if sortKey == "album" {
+			return x.Album < y.Album
+		}
+		if sortKey == "year" {
 			return x.Year < y.Year
 		}
-		if x.Length != y.Length {
+		if sortKey == "length" {
 			return x.Length < y.Length
 		}
 		return false
