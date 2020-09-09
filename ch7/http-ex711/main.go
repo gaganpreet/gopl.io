@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,6 +10,27 @@ import (
 )
 
 var mu sync.Mutex
+
+var listTemplate = template.Must(template.New("listProducts").Parse(`
+<html>
+<head>
+<title>Shopping</title>
+</head>
+<body>
+<table>
+<tr style='text-align: left'>
+	<th>Item</th>
+	<th>Price</th>
+</tr>
+{{ range $key, $value := . }}
+<tr>
+	<td>{{ $key }}</td>
+	<td>{{ $value }}</td>
+</tr>
+{{ end }}
+</table>
+</body>
+`))
 
 func main() {
 	db := database{"shoes": 50, "socks": 5}
@@ -30,8 +52,8 @@ func (d dollars) String() string {
 }
 
 func (db database) list(w http.ResponseWriter, req *http.Request) {
-	for item, price := range db {
-		fmt.Fprintf(w, "%s: %s\n", item, price)
+	if err := listTemplate.Execute(w, db); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
