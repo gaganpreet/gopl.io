@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"strings"
@@ -11,7 +12,7 @@ type Expr interface {
 	Eval(env Env) float64
 	// Check reports errors in this Expr and adds its Vars to the set.
 	Check(vars map[Var]bool) error
-	String(e Expr) string
+	String() string
 }
 
 // A Var identifies a variable, eg: x
@@ -50,8 +51,16 @@ func (v Var) Check(vars map[Var]bool) error {
 	return nil
 }
 
+func (v Var) String() string {
+	return string(v)
+}
+
 func (l literal) Eval(_ Env) float64 {
 	return float64(l)
+}
+
+func (l literal) String() string {
+	return fmt.Sprintf("%f", l)
 }
 
 func (literal) Check(vars map[Var]bool) error {
@@ -66,6 +75,10 @@ func (u unary) Eval(env Env) float64 {
 		return -u.x.Eval(env)
 	}
 	panic(fmt.Sprintf("unsupported unary operator: %q", u.op))
+}
+
+func (u unary) String() string {
+	return fmt.Sprintf("%c%s", u.op, u.x.String())
 }
 
 func (u unary) Check(vars map[Var]bool) error {
@@ -87,6 +100,10 @@ func (b binary) Eval(env Env) float64 {
 		return b.x.Eval(env) / b.y.Eval(env)
 	}
 	panic(fmt.Sprintf("unsupported binary operator: %q", b.op))
+}
+
+func (b binary) String() string {
+	return fmt.Sprintf("(%s %c %s)", b.x.String(), b.op, b.y.String())
 }
 
 func (b binary) Check(vars map[Var]bool) error {
@@ -127,4 +144,18 @@ func (c call) Check(vars map[Var]bool) error {
 		}
 	}
 	return nil
+}
+
+func (c call) String() string {
+	b := &bytes.Buffer{}
+	b.WriteString(c.fn)
+	b.WriteString("(")
+	for i, arg := range c.args {
+		if i != 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(arg.String())
+	}
+	b.WriteString(")")
+	return b.String()
 }
