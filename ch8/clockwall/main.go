@@ -20,7 +20,7 @@ func main() {
 	for index, arg := range os.Args[1:] {
 		res := strings.Split(arg, "=")
 		city := res[0]
-		fmt.Printf("% *s\n", index*20, city)
+		fmt.Printf("% *s\n", index*40, city)
 	}
 	for index, arg := range os.Args[1:] {
 		res := strings.Split(arg, "=")
@@ -42,7 +42,7 @@ func connectToClock(city, address string, index int) {
 	defer conn.Close()
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
-		fmt.Printf("% *s\n", index*20, scanner.Text())
+		fmt.Printf("% *s\n", index*40, scanner.Text())
 	}
 
 }
