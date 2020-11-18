@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,18 +29,23 @@ func main() {
 
 func handleConn(c net.Conn) {
 	defer c.Close()
+	io.WriteString(c, "220 Hello\n")
 	scanner := bufio.NewScanner(c)
 	cwd := "."
 	for scanner.Scan() {
 		text := scanner.Text()
-		if text == "close" {
+		fmt.Println("Received ", text)
+		command := strings.SplitN(text, " ", 2)[0]
+		command = strings.ToLower(command)
+		switch command {
+		case "close":
 			break
-		} else if text == "ls" {
+		case "ls":
 			fileList := getFileList(cwd)
 			for _, filename := range fileList {
 				io.WriteString(c, filename+"\n")
 			}
-		} else if text[:3] == "get" {
+		case "get":
 			res := strings.Split(text, " ")
 			if len(res) != 2 {
 				io.WriteString(c, "Invalid input for get")
@@ -50,15 +56,27 @@ func handleConn(c net.Conn) {
 				io.WriteString(c, "File not found")
 			}
 			io.Copy(c, file)
-		} else if text[:2] == "cd" {
+		case "cd":
 			res := strings.Split(text, " ")
 			if len(res) != 2 {
 				io.WriteString(c, "Invalid input for cd")
 			}
 			newPath := res[1]
 			cwd = path.Join(cwd, newPath)
-		} else {
-			io.WriteString(c, "Invalid command")
+		case "user":
+			io.WriteString(c, "331 Anonymous login ok")
+		case "pass":
+			io.WriteString(c, "230 Anonymous access granted")
+		case "pwd":
+			io.WriteString(c, "250 CWD command successful")
+		case "epsv":
+		case "pasv":
+			io.WriteString(c, "227 Entering Passive Mode")
+		case "syst":
+			io.WriteString(c, "215 UNIX Type: L8")
+		default:
+			io.WriteString(c, "502 Command not implemented")
+			fmt.Fprintf(os.Stderr, "Invalid command: %s\n", command)
 		}
 		io.WriteString(c, "\n")
 	}
