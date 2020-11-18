@@ -28,7 +28,7 @@ func main() {
 func handleConn(c net.Conn) {
 	input := bufio.NewScanner(c)
 	for input.Scan() {
-		echo(c, input.Text(), 1*time.Second)
+		go echo(c, input.Text(), 1*time.Second)
 	}
 	// Note: Ignoring potential errors from input.Err()
 	c.Close()
